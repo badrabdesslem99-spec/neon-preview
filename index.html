@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>معاينة النيون - NEON</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; user-select: none; -webkit-touch-callout: none; }
+        body {
+            background: #121212;
+            font-family: sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            padding: 16px;
+            min-height: 100vh;
+            color: #fff;
+        }
+        h1 { font-size: 22px; margin-bottom: 16px; color: #ff66b2; text-shadow: 0 0 10px #ff66b280; }
+        .upload-section {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            justify-content: center;
+            width: 100%;
+            max-width: 500px;
+            margin-bottom: 16px;
+        }
+        .upload-btn {
+            background: #2a2a2a;
+            padding: 10px 16px;
+            border-radius: 30px;
+            border: 1px solid #444;
+            color: #ddd;
+            font-size: 14px;
+            cursor: pointer;
+            flex: 1;
+            min-width: 120px;
+            text-align: center;
+            transition: 0.3s;
+        }
+        .upload-btn:active { background: #3a3a3a; }
+        .upload-btn input { display: none; }
+        .canvas-wrapper {
+            position: relative;
+            width: 100%;
+            max-width: 500px;
+            aspect-ratio: 4 / 3;
+            background: #1a1a1a;
+            border-radius: 16px;
+            overflow: hidden;
+            border: 2px solid #333;
+            touch-action: none;
+        }
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+            background: #1a1a1a;
+            touch-action: none;
+            cursor: grab;
+        }
+        canvas:active { cursor: grabbing; }
+        .controls {
+            width: 100%;
+            max-width: 500px;
+            margin-top: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .slider-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: #1e1e1e;
+            padding: 8px 14px;
+            border-radius: 30px;
+            border: 1px solid #333;
+        }
+        .slider-row label {
+            min-width: 60px;
+            font-size: 13px;
+            color: #aaa;
+        }
+        .slider-row input[type="range"] {
+            flex: 1;
+            -webkit-appearance: none;
+            background: #333;
+            height: 4px;
+            border-radius: 2px;
+            outline: none;
+        }
+        .slider-row input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 18px;
+            height: 18px;
+            background: #ff66b2;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+        .slider-row span {
+            min-width: 35px;
+            text-align: center;
+            font-size: 14px;
+            color: #fff;
+        }
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 6px;
+        }
+        .btn {
+            background: #2a2a2a;
+            border: 1px solid #444;
+            color: #fff;
+            padding: 12px 20px;
+            border-radius: 30px;
+            font-size: 15px;
+            font-weight: bold;
+            flex: 1;
+            min-width: 100px;
+            text-align: center;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .btn:active { transform: scale(0.95); background: #3a3a3a; }
+        .btn-primary { background: #ff66b2; color: #121212; border: none; }
+        .btn-primary:active { background: #ff88c2; }
+        .info { font-size: 12px; color: #666; margin-top: 12px; text-align: center; }
+    </style>
+</head>
+<body>
+
+    <h1>🧬 NEON · معاينة فورية</h1>
+
+    <div class="upload-section">
+        <label class="upload-btn">
+            📸 صورة المحل
+            <input type="file" id="bgInput" accept="image/*">
+        </label>
+        <label class="upload-btn">
+            💡 صورة النيون
+            <input type="file" id="neonInput" accept="image/*">
+        </label>
+    </div>
+
+    <div class="canvas-wrapper">
+        <canvas id="canvas"></canvas>
+    </div>
+
+    <div class="controls">
+        <div class="slider-row">
+            <label>📐 الحجم</label>
+            <input type="range" id="scaleSlider" min="0.2" max="2.0" step="0.01" value="0.8">
+            <span id="scaleVal">0.80</span>
+        </div>
+        <div class="slider-row">
+            <label>🔄 الدوران</label>
+            <input type="range" id="rotateSlider" min="-180" max="180" step="1" value="0">
+            <span id="rotateVal">0°</span>
+        </div>
+        <div class="slider-row">
+            <label>✨ الشفافية</label>
+            <input type="range" id="alphaSlider" min="0.3" max="1.0" step="0.01" value="0.95">
+            <span id="alphaVal">0.95</span>
+        </div>
+        
+        <div class="action-buttons">
+            <div class="btn" id="resetBtn">↺ إعادة تعيين</div>
+            <div class="btn btn-primary" id="saveBtn">💾 حفظ المعاينة</div>
+        </div>
+    </div>
+    <div class="info">اسحب النيون بإصبعك لتحديد مكانه · استخدم قرصتين لتكبير/تصغير الحجم</div>
+
+    <script>
+        // --- إعدادات الكانفاس ---
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        
+        // حالة الصور
+        let bgImg = null;
+        let neonImg = null;
+        
+        // حالة النيون (الموضع، الحجم، الدوران، الشفافية)
+        let state = {
+            x: 0.5,      // نسبة من عرض الكانفاس
+            y: 0.5,      // نسبة من ارتفاع الكانفاس
+            scale: 0.8,
+            rotation: 0, // درجات
+            alpha: 0.95
+        };
+
+        // متغيرات للسحب (Drag)
+        let isDragging = false;
+        let dragStartX = 0, dragStartY = 0;
+        let startStateX = 0, startStateY = 0;
+
+        // متغيرات للتكبير باللمس (Pinch)
+        let lastPinchDist = 0;
+        let initialPinchScale = 0.8;
+
+        // مراجع لعناصر التحكم
+        const scaleSlider = document.getElementById('scaleSlider');
+        const rotateSlider = document.getElementById('rotateSlider');
+        const alphaSlider = document.getElementById('alphaSlider');
+        const scaleVal = document.getElementById('scaleVal');
+        const rotateVal = document.getElementById('rotateVal');
+        const alphaVal = document.getElementById('alphaVal');
+
+        // --- دوال الرسم الأساسية ---
+        function getCanvasCoords(clientX, clientY) {
+            const rect = canvas.getBoundingClientRect();
+            const scaleX = canvas.width / rect.width;
+            const scaleY = canvas.height / rect.height;
+            return {
+                x: (clientX - rect.left) * scaleX,
+                y: (clientY - rect.top) * scaleY
+            };
+        }
+
+        function draw() {
+            const w = canvas.width;
+            const h = canvas.height;
+            ctx.clearRect(0, 0, w, h);
+
+            // 1. رسم صورة الخلفية (المحل)
+            if (bgImg) {
+                ctx.drawImage(bgImg, 0, 0, w, h);
+            } else {
+                ctx.fillStyle = '#1a1a1a';
+                ctx.fillRect(0, 0, w, h);
+                ctx.fillStyle = '#444';
+                ctx.font = '20px sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText('تحميل صورة المحل', w/2, h/2);
+            }
+
+            // 2. رسم النيون (إذا كان محملاً)
+            if (neonImg) {
+                const cx = state.x * w;
+                const cy = state.y * h;
+                const baseSize = Math.min(w, h) * 0.4;
+                const size = baseSize * state.scale;
+                
+                ctx.save();
+                ctx.translate(cx, cy);
+                ctx.rotate((state.rotation * Math.PI) / 180);
+                ctx.globalAlpha = state.alpha;
+                
+                // **الخدعة السحرية**: Screen Blend Mode لحذف الخلفية السوداء/الداكنة
+                ctx.globalCompositeOperation = 'screen';
+                
+                ctx.drawImage(neonImg, -size/2, -size/2, size, size);
+                
+                ctx.restore();
+                
+                // إعادة تعيين وضع المزج للتأكد
+                ctx.globalCompositeOperation = 'source-over';
+                ctx.globalAlpha = 1.0;
+            } else {
+                ctx.fillStyle = '#666';
+                ctx.font = '16px sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText('تحميل صورة النيون', w/2, h/2 + 40);
+            }
+        }
+
+        // --- تحميل الصور ---
+        function loadImage(file, callback) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const img = new Image();
+                img.onload = () => callback(img);
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        document.getElementById('bgInput').addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            loadImage(file, (img) => {
+                bgImg = img;
+                fitCanvasToImage();
+                draw();
+            });
+        });
+
+        document.getElementById('neonInput').addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            loadImage(file, (img) => {
+                neonImg = img;
+                fitCanvasToImage();
+                draw();
+            });
+        });
+
+        function fitCanvasToImage() {
+            const wrapper = canvas.parentElement;
+            const wrapperRect = wrapper.getBoundingClientRect();
+            const w = wrapperRect.width - 4; // حواف
+            const ratio = 4/3;
+            let displayWidth = w;
+            let displayHeight = w / ratio;
+            
+            // إذا كانت الصورة موجودة، نأخذ نسبة أبعادها
+            let imgRatio = 4/3;
+            if (bgImg) imgRatio = bgImg.width / bgImg.height;
+            else if (neonImg) imgRatio = neonImg.width / neonImg.height;
+            
+            // نضبط العرض والارتفاع الفعليين للكانفاس (بدقة عالية)
+            const dpr = 2; // دقة مضاعفة للوضوح
+            canvas.width = w * dpr;
+            canvas.height = (w / imgRatio) * dpr;
+            
+            // ضبط CSS بحيث يملأ الحاوية
+            canvas.style.width = '100%';
+            canvas.style.height = '100%';
+        }
+
+        // --- التحكم بالسلايدرات ---
+        scaleSlider.addEventListener('input', () => {
+            state.scale = parseFloat(scaleSlider.value);
+            scaleVal.textContent = state.scale.toFixed(2);
+            draw();
+        });
+        rotateSlider.addEventListener('input', () => {
+            state.rotation = parseFloat(rotateSlider.value);
+            rotateVal.textContent = state.rotation + '°';
+            draw();
+        });
+        alphaSlider.addEventListener('input', () => {
+            state.alpha = parseFloat(alphaSlider.value);
+            alphaVal.textContent = state.alpha.toFixed(2);
+            draw();
+        });
+
+        document.getElementById('resetBtn').addEventListener('click', () => {
+            state.x = 0.5;
+            state.y = 0.5;
+            state.scale = 0.8;
+            state.rotation = 0;
+            state.alpha = 0.95;
+            scaleSlider.value = 0.8;
+            rotateSlider.value = 0;
+            alphaSlider.value = 0.95;
+            scaleVal.textContent = '0.80';
+            rotateVal.textContent = '0°';
+            alphaVal.textContent = '0.95';
+            draw();
+        });
+
+        document.getElementById('saveBtn').addEventListener('click', () => {
+            const link = document.createElement('a');
+            link.download = 'neon_preview.png';
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+        });
+
+        // --- أحداث السحب باللمس والفأرة ---
+        function getEventPos(e) {
+            if (e.touches) {
+                return { clientX: e.touches[0].clientX, clientY: e.touches[0].clientY };
+            }
+            return { clientX: e.clientX, clientY: e.clientY };
+        }
+
+        function getTouchDist(e) {
+            if (e.touches.length < 2) return 0;
+            const dx = e.touches[0].clientX - e.touches[1].clientX;
+            const dy = e.touches[0].clientY - e.touches[1].clientY;
+            return Math.sqrt(dx*dx + dy*dy);
+        }
+
+        function handleStart(e) {
+            e.preventDefault();
+            if (e.touches && e.touches.length === 2) {
+                // Pinch بدأ
+                lastPinchDist = getTouchDist(e);
+                initialPinchScale = state.scale;
+                return;
+            }
+            const pos = getEventPos(e);
+            const rect = canvas.getBoundingClientRect();
+            // نحدد إذا كان الضغط على النيون (تقريباً)
+            const cx = state.x * canvas.width;
+            const cy = state.y * canvas.height;
+            const size = Math.min(canvas.width, canvas.height) * 0.4 * state.scale;
+            const canvasPos = getCanvasCoords(pos.clientX, pos.clientY);
+            
+            // نفحص إذا كان المستخدم ضغط بالقرب من مركز النيون (مسافة 50 بكسل)
+            const dist = Math.hypot(canvasPos.x - cx, canvasPos.y - cy);
+            if (dist < size/2 + 30 || !bgImg) {
+                isDragging = true;
+                dragStartX = pos.clientX;
+                dragStartY = pos.clientY;
+                startStateX = state.x;
+                startStateY = state.y;
+                canvas.style.cursor = 'grabbing';
+            }
+        }
+
+        function handleMove(e) {
+            e.preventDefault();
+            if (e.touches && e.touches.length === 2 && neonImg) {
+                // تحديث التكبير باللمس
+                const newDist = getTouchDist(e);
+                if (lastPinchDist > 0) {
+                    const delta = newDist / lastPinchDist;
+                    let newScale = initialPinchScale * delta;
+                    newScale = Math.min(2.0, Math.max(0.2, newScale));
+                    state.scale = newScale;
+                    scaleSlider.value = newScale;
+                    scaleVal.textContent = newScale.toFixed(2);
+                    draw();
+                }
+                return;
+            }
+
+            if (!isDragging || !neonImg) return;
+            const pos = getEventPos(e);
+            const rect = canvas.getBoundingClientRect();
+            const dx = (pos.clientX - dragStartX) / rect.width;
+            const dy = (pos.clientY - dragStartY) / rect.height;
+            
+            state.x = Math.min(1.0, Math.max(0.0, startStateX + dx));
+            state.y = Math.min(1.0, Math.max(0.0, startStateY + dy));
+            draw();
+        }
+
+        function handleEnd(e) {
+            e.preventDefault();
+            isDragging = false;
+            canvas.style.cursor = 'grab';
+            lastPinchDist = 0;
+        }
+
+        // --- ربط الأحداث ---
+        canvas.addEventListener('mousedown', handleStart);
+        window.addEventListener('mousemove', handleMove);
+        window.addEventListener('mouseup', handleEnd);
+
+        canvas.addEventListener('touchstart', handleStart, { passive: false });
+        window.addEventListener('touchmove', handleMove, { passive: false });
+        window.addEventListener('touchend', handleEnd, { passive: false });
+
+        // منع القائمة المنبثقة بالضغط المطول
+        canvas.addEventListener('contextmenu', (e) => e.preventDefault());
+
+        // --- تهيئة أولية ---
+        setTimeout(() => {
+            fitCanvasToImage();
+            draw();
+        }, 100);
+
+        // إعادة الرسم عند تغيير حجم النافذة
+        window.addEventListener('resize', () => {
+            fitCanvasToImage();
+            draw();
+        });
+    </script>
+</body>
+  </html>
