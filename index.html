@@ -493,7 +493,9 @@
         }
 
         function handleMove(e) {
-            e.preventDefault();
+    if (isDragging || (e.touches && e.touches.length === 2)) {
+        e.preventDefault();
+    }
             if (e.touches && e.touches.length === 2 && neonImg) {
                 const newDist = getTouchDist(e);
                 if (lastPinchDist > 0) {
@@ -520,11 +522,13 @@
         }
 
         canvas.addEventListener('mousedown', handleStart);
-        window.addEventListener('mousemove', handleMove);
-        window.addEventListener('mouseup', handleEnd);
-        canvas.addEventListener('touchstart', handleStart, { passive: false });
-        window.addEventListener('touchmove', handleMove, { passive: false });
-        window.addEventListener('touchend', handleEnd, { passive: false });
+window.addEventListener('mousemove', handleMove);
+window.addEventListener('mouseup', handleEnd);
+
+canvas.addEventListener('touchstart', handleStart, { passive: false });
+canvas.addEventListener('touchmove', handleMove, { passive: false });
+canvas.addEventListener('touchend', handleEnd, { passive: false });
+window.addEventListener('touchend', handleEnd, { passive: false });
         canvas.addEventListener('contextmenu', e => e.preventDefault());
 
         setTimeout(() => { fitCanvasToImage(); draw(); }, 120);
