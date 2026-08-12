@@ -209,7 +209,40 @@
             <input type="range" id="contrastSlider" min="0.5" max="2.0" step="0.05" value="1.0">
             <span id="contrastVal">1.00</span>
         </div>
+<!-- ===== قسم الواقعية ===== -->
+<div class="section-title">✨ الواقعية</div>
 
+<div class="slider-row">
+    <label>💫 الوهج</label>
+    <input type="range" id="glowSlider" min="0" max="1.5" step="0.05" value="0.7">
+    <span id="glowVal">0.70</span>
+</div>
+
+<div class="slider-row">
+    <label>💡 انتشار الضوء</label>
+    <input type="range" id="spillSlider" min="0" max="1.2" step="0.05" value="0.55">
+    <span id="spillVal">0.55</span>
+</div>
+
+<div class="slider-row">
+    <label>🌫 حجم الانتشار</label>
+    <input type="range" id="spillSizeSlider" min="1.0" max="3.0" step="0.1" value="1.8">
+    <span id="spillSizeVal">1.80</span>
+</div>
+
+<div class="slider-row">
+    <label>🎨 اندماج البيئة</label>
+    <input type="range" id="envMixSlider" min="0" max="1" step="0.05" value="0.4">
+    <span id="envMixVal">0.40</span>
+</div>
+
+<div class="section-title" style="margin-top:6px;">إعدادات جاهزة</div>
+<div class="blend-row" style="margin-bottom:8px;">
+    <div class="blend-btn" id="presetRealistic">واقعي</div>
+    <div class="blend-btn" id="presetBright">مشرق</div>
+    <div class="blend-btn" id="presetSoft">ناعم</div>
+    <div class="blend-btn" id="presetNight">ليلي</div>
+</div>
         <div class="section-title">نوع المزج (جربهم حسب نوع النيون)</div>
         <div class="blend-row">
             <div class="blend-btn active" data-blend="screen">Screen</div>
