@@ -240,19 +240,23 @@
         
         let bgImg = null;
         let neonImg = null;
-        
         let state = {
-            x: 0.5,
-            y: 0.5,
-            scale: 0.8,
-            rotation: 0,
-            alpha: 0.95,
-            brightness: 1.0,
-            contrast: 1.0,
-            blend: 'screen',
-            flipH: false,
-            flipV: false
-        };
+    x: 0.5,
+    y: 0.5,
+    scale: 0.8,
+    rotation: 0,
+    alpha: 0.95,
+    brightness: 1.0,
+    contrast: 1.0,
+    blend: 'screen',
+    flipH: false,
+    flipV: false,
+    // --- إضافات الواقعية ---
+    glow: 0.7,          // شدة الـ Glow
+    spill: 0.55,        // انتشار الضوء على الجدار
+    spillSize: 1.8,     // حجم انتشار الضوء
+    envMix: 0.4         // اندماج مع البيئة
+};
 
         let isDragging = false;
         let dragStartX = 0, dragStartY = 0;
