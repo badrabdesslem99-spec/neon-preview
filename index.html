@@ -631,10 +631,11 @@ function setPreset(g, s, ss, e) {
         // إعادة التعيين
         document.getElementById('resetBtn').addEventListener('click', () => {
             state = {
-                x: 0.5, y: 0.5, scale: 0.8, rotation: 0,
-                alpha: 0.95, brightness: 1.0, contrast: 1.0,
-                blend: 'screen', flipH: false, flipV: false
-            };
+    x: 0.5, y: 0.5, scale: 0.8, rotation: 0,
+    alpha: 0.95, brightness: 1.0, contrast: 1.0,
+    blend: 'screen', flipH: false, flipV: false,
+    glow: 0.7, spill: 0.55, spillSize: 1.8, envMix: 0.4
+};
             glowSlider.value = 0.7;
 spillSlider.value = 0.55;
 spillSizeSlider.value = 1.8;
