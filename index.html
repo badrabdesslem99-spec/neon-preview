@@ -444,7 +444,51 @@ const envMixVal = document.getElementById('envMixVal');
             contrastVal.textContent = state.contrast.toFixed(2);
             draw();
         });
+// --- ربط أشرطة الواقعية ---
+glowSlider.addEventListener('input', () => {
+    state.glow = parseFloat(glowSlider.value);
+    glowVal.textContent = state.glow.toFixed(2);
+    draw();
+});
+spillSlider.addEventListener('input', () => {
+    state.spill = parseFloat(spillSlider.value);
+    spillVal.textContent = state.spill.toFixed(2);
+    draw();
+});
+spillSizeSlider.addEventListener('input', () => {
+    state.spillSize = parseFloat(spillSizeSlider.value);
+    spillSizeVal.textContent = state.spillSize.toFixed(2);
+    draw();
+});
+envMixSlider.addEventListener('input', () => {
+    state.envMix = parseFloat(envMixSlider.value);
+    envMixVal.textContent = state.envMix.toFixed(2);
+    draw();
+});
 
+// --- الإعدادات الجاهزة ---
+document.getElementById('presetRealistic').addEventListener('click', () => {
+    setPreset(0.7, 0.55, 1.8, 0.4);
+});
+document.getElementById('presetBright').addEventListener('click', () => {
+    setPreset(1.1, 0.8, 2.2, 0.25);
+});
+document.getElementById('presetSoft').addEventListener('click', () => {
+    setPreset(0.45, 0.35, 1.5, 0.55);
+});
+document.getElementById('presetNight').addEventListener('click', () => {
+    setPreset(1.3, 0.95, 2.6, 0.15);
+});
+
+function setPreset(g, s, ss, e) {
+    state.glow = g; state.spill = s; state.spillSize = ss; state.envMix = e;
+    glowSlider.value = g; spillSlider.value = s; spillSizeSlider.value = ss; envMixSlider.value = e;
+    glowVal.textContent = g.toFixed(2);
+    spillVal.textContent = s.toFixed(2);
+    spillSizeVal.textContent = ss.toFixed(2);
+    envMixVal.textContent = e.toFixed(2);
+    draw();
+                                     }
         // أزرار المزج
         document.querySelectorAll('.blend-btn').forEach(btn => {
             btn.addEventListener('click', () => {
