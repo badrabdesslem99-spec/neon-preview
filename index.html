@@ -345,36 +345,56 @@ const envMixVal = document.getElementById('envMixVal');
                 ctx.fillText('ثم صورة النيون', w/2, h/2 + 18);
             }
 
-            // النيون
-            if (neonImg) {
-                const cx = state.x * w;
-                const cy = state.y * h;
-                const baseSize = Math.min(w, h) * 0.42;
-                const size = baseSize * state.scale;
+            // النيون + الواقعية
+if (neonImg) {
+    const cx = state.x * w;
+    const cy = state.y * h;
+    const baseSize = Math.min(w, h) * 0.42;
+    const size = baseSize * state.scale;
 
-                ctx.save();
-                ctx.translate(cx, cy);
-                ctx.rotate((state.rotation * Math.PI) / 180);
+    ctx.save();
+    ctx.translate(cx, cy);
+    ctx.rotate((state.rotation * Math.PI) / 180);
 
-                // القلب
-                const scaleX = state.flipH ? -1 : 1;
-                const scaleY = state.flipV ? -1 : 1;
-                ctx.scale(scaleX, scaleY);
+    const scaleX = state.flipH ? -1 : 1;
+    const scaleY = state.flipV ? -1 : 1;
+    ctx.scale(scaleX, scaleY);
 
-                // الفلتر (سطوع + تباين)
-                ctx.filter = `brightness(\( {state.brightness}) contrast( \){state.contrast})`;
-                ctx.globalAlpha = state.alpha;
-                ctx.globalCompositeOperation = state.blend;
+    // ========== 1. Wall Light Spill (انتشار الضوء على الجدار) ==========
+    if (state.spill > 0.01) {
+        const spillSize = size * state.spillSize;
+        ctx.save();
+        ctx.globalCompositeOperation = 'screen';
+        ctx.filter = `blur(\( {Math.round(18 + state.spillSize * 12)}px) brightness( \){1.1 + state.spill * 0.4})`;
+        ctx.globalAlpha = state.spill * 0.55 * state.alpha;
+        ctx.drawImage(neonImg, -spillSize/2, -spillSize/2, spillSize, spillSize);
+        ctx.restore();
+    }
 
-                ctx.drawImage(neonImg, -size/2, -size/2, size, size);
+    // ========== 2. Glow (الوهج) ==========
+    if (state.glow > 0.01) {
+        const glowSize = size * (1.15 + state.glow * 0.45);
+        ctx.save();
+        ctx.globalCompositeOperation = 'screen';
+        ctx.filter = `blur(\( {Math.round(8 + state.glow * 14)}px) brightness( \){1.2 + state.glow * 0.5})`;
+        ctx.globalAlpha = state.glow * 0.7 * state.alpha;
+        ctx.drawImage(neonImg, -glowSize/2, -glowSize/2, glowSize, glowSize);
+        ctx.restore();
+    }
 
-                ctx.restore();
+    // ========== 3. Neon Core (النيون نفسه) ==========
+    ctx.filter = `brightness(\( {state.brightness}) contrast( \){state.contrast})`;
+    ctx.globalAlpha = state.alpha;
+    ctx.globalCompositeOperation = state.blend;
+    ctx.drawImage(neonImg, -size/2, -size/2, size, size);
 
-                // إعادة الضبط
-                ctx.filter = 'none';
-                ctx.globalCompositeOperation = 'source-over';
-                ctx.globalAlpha = 1.0;
-            }
+    ctx.restore();
+
+    // إعادة الضبط
+    ctx.filter = 'none';
+    ctx.globalCompositeOperation = 'source-over';
+    ctx.globalAlpha = 1.0;
+}
         }
 
         function loadImage(file, callback) {
